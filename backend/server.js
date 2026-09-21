@@ -26,7 +26,13 @@ app.use("/api/tasks", taskRoutes);
 // an error handler, and it only catches errors from routes defined above it.
 app.use(errorHandler);
 
-connectDB();
+connectDB().catch((error) => {
+  // Without this .catch(), a failed connection becomes an "unhandled
+  // promise rejection" — which crashes the entire serverless function on
+  // Vercel (that's the FUNCTION_INVOCATION_FAILED error), instead of just
+  // failing the requests that actually need the database.
+  console.error("Could not connect to MongoDB on startup:", error.message);
+});
 
 // Only start a traditional listening server for local dev (`node server.js`).
 // On Vercel, this file is imported as a serverless function instead, so
